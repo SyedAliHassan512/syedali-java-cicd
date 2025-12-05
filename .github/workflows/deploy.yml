@@ -25,12 +25,15 @@ jobs:
       env:
         PRIVATE_KEY: ${{ secrets.VPS_PRIVATE_KEY }}
       run: |
+        # Save private key to a file
         echo "$PRIVATE_KEY" > key.pem
         chmod 600 key.pem
-        # SCP command — upload JAR to VPS
-        scp -o StrictHostKeyChecking=no -i key.pem target/syedali-java-cicd-1.0-SNAPSHOT.jar root@145.223.79.113:/home/root/syedali-java-cicd/
-        # SSH to VPS and run app
+
+        # Copy JAR to VPS
+        scp -o StrictHostKeyChecking=no -i key.pem target/my-java-app-1.0-SNAPSHOT.jar root@145.223.79.113:/home/root/syedali-java-cicd/
+
+        # Connect to VPS, stop old app if running, and start new app
         ssh -o StrictHostKeyChecking=no -i key.pem root@145.223.79.113 << 'EOF'
-          pkill -f 'syedali-java-cicd-1.0-SNAPSHOT.jar' || true
-          nohup java -jar /home/root/syedali-java-cicd/syedali-java-cicd-1.0-SNAPSHOT.jar > /home/root/syedali-java-cicd/app.log 2>&1 &
+          pkill -f 'my-java-app-1.0-SNAPSHOT.jar' || true
+          nohup java -jar /home/root/syedali-java-cicd/my-java-app-1.0-SNAPSHOT.jar > /home/root/syedali-java-cicd/app.log 2>&1 &
         EOF
