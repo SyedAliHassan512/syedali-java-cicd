@@ -1,0 +1,36 @@
+name: Java CI/CD with VPS Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    - name: Upload Artifact to VPS
+      env:
+        PRIVATE_KEY: ${{ secrets.VPS_PRIVATE_KEY }}
+      run: |
+        echo "$PRIVATE_KEY" > key.pem
+        chmod 600 key.pem
+        # SCP command — upload JAR to VPS
+        scp -o StrictHostKeyChecking=no -i key.pem target/syedali-java-cicd-1.0-SNAPSHOT.jar root@145.223.79.113:/home/root/syedali-java-cicd/
+        # SSH to VPS and run app
+        ssh -o StrictHostKeyChecking=no -i key.pem root@145.223.79.113 << 'EOF'
+          pkill -f 'syedali-java-cicd-1.0-SNAPSHOT.jar' || true
+          nohup java -jar /home/root/syedali-java-cicd/syedali-java-cicd-1.0-SNAPSHOT.jar > /home/root/syedali-java-cicd/app.log 2>&1 &
+        EOF

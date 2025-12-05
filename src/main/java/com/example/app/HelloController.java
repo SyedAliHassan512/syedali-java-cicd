@@ -8,6 +8,6 @@ public class HelloController {
 
     @GetMapping("/")
     public String home() {
-        return "Hello, Welcome to Syed Ali Hassan Java Cicd";
+        return "Hello, Welcome to Syed Ali Hassan Java Cicd Project";
     }
 }
